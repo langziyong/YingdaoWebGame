@@ -1,9 +1,9 @@
-# Vue 3 + TypeScript + Vite
+# 影刀网页操作测试
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+很难想象作者的心态。
 
-## Recommended Setup
+## 西西的私有仓库
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (previously Volar) and disable Vetur
+- 使用 `Ctrl+X` 以及 `Ctrl+I` 键入`xixi`启用作弊
+- 在游戏进行中界面按下 `X` 作弊
 
-- Use [vue-tsc](https://github.com/vuejs/language-tools/tree/master/packages/tsc) for performing the same type checking from the command line, or for generating d.ts files for SFCs.
