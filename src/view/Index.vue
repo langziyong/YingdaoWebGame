@@ -2,11 +2,12 @@
 
 import {computed, onMounted, ref} from "vue";
 
-interface GameFrame {
+interface Block {
   x: number
   y: number
   width: number
   height: number
+  className: string
 }
 
 let rootEl: Element | null
@@ -28,31 +29,52 @@ enum GameStatus {
 }
 
 class Game {
-  nowFrame: GameFrame = {x: 0, y: 0, width: 0, height: 0}
   score: number = 0
   startTime: Date | null = null
   avgTime: number = 0
   clockTime: number = 0
   intervalId: number = -1
   status: GameStatus = GameStatus.READY
+  targetClassName: string = ""
+  blockClassList: Array<Block> = []
 
   constructor() {
 
   }
 
-  generateFrame(): void {
-    if (!rootSize.value) return
-    let frame: GameFrame = {x: 0, y: 0, width: 0, height: 0}
-    frame.x = Math.floor(Math.random() * (rootSize.value.width - 200))
-    frame.y = Math.floor(Math.random() * (rootSize.value.height - 200))
-    this.nowFrame = frame
+  generateClass(number: number) {
+    if (!rootSize.value) {
+      console.log("获取屏幕大小失败")
+      return
+    }
+    if (!styleElement) {
+      console.log("获取Style元素失败")
+      return
+    }
+    styleElement.innerText = ""
+    this.blockClassList = []
+    let targetIndex = Math.floor(Math.random() * (number + 1))
+    for (let i = 0; i < number; i++) {
+      let className = generateRandomString()
+      let block: Block = {x: 0, y: 0, width: 0, height: 0, className: className}
+      block.x = Math.floor(Math.random() * (rootSize.value.width - 200))
+      block.y = Math.floor(Math.random() * (rootSize.value.height - 200))
+      if (i === targetIndex) {
+        this.targetClassName = className
+        styleElement.innerText += `.${className} { left: ${block.x}px; top: ${block.y}px; }`;
+      } else {
+        styleElement.innerText += `.${className} { display: none; }`;
+      }
+      this.blockClassList.push(block)
+    }
   }
+
 
   clickHandler(): void {
     this.score++
     if (!this.startTime) return
     this.avgTime = (new Date().getTime() - this.startTime.getTime()) / this.score
-    this.generateFrame()
+    this.generateClass(100)
   }
 
   startClock(): void {
@@ -75,7 +97,7 @@ class Game {
 
   start() {
     this.startClock()
-    this.generateFrame()
+    this.generateClass(100)
     this.status = GameStatus.PROCESSING
   }
 
@@ -87,25 +109,33 @@ class Game {
 }
 
 const gameInstance = ref<Game>(new Game())
-const style = computed(() => {
-  if (!gameInstance.value) return null
-  return {
-    top: gameInstance.value.nowFrame.y + "px",
-    left: gameInstance.value.nowFrame.x + "px"
-  }
-})
 
 function testAddCssClass() {
-  var styleElement = document.createElement('style');
-  styleElement.innerHTML = '.highlighted { display: none; }';
-  document.head.appendChild(styleElement);
+  if (!styleElement) return
+  styleElement.innerText = ""
+  for (let i = 0; i < 100; i++) {
+    styleElement.innerText += `.${generateRandomString()} { display: none; }`;
+  }
+}
+
+
+function generateRandomString(): string {
+  const characters: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result: string = '';
+  for (let i = 0; i < 8; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return "_"+result;
 }
 
 const cheat = ref(false)
 const cheatCode = ref<Array<string>>([])
 const allowKey = new Set(['x', 'i'])
+let styleElement: HTMLStyleElement | null = null;
 onMounted(() => {
   rootEl = document.querySelector(".root")
+  styleElement = document.createElement('style');
+  document.head.appendChild(styleElement);
   document.addEventListener('keydown', function (event) {
     if (event.code === 'Space') {
       event.preventDefault()
@@ -148,7 +178,7 @@ onMounted(() => {
     <div class="start" v-if="gameInstance.status===GameStatus.READY">
       <div>按下空格随时暂停游戏</div>
       <div class="btn" @click="gameInstance.start">开始游戏</div>
-      <div class="btn highlighted" @click="testAddCssClass">生成样式类</div>
+      <div class="btn" @click="testAddCssClass">生成样式类</div>
     </div>
     <div class="status" v-else>
       <div class="score">{{ gameInstance.score }}</div>
@@ -156,8 +186,11 @@ onMounted(() => {
       <div class="avg clock">{{ (gameInstance.clockTime / 1000).toFixed(2) }}s</div>
     </div>
     <div class="block_pool" v-if="gameInstance.status===GameStatus.PROCESSING">
-      <div class="block"
-           :style="style" @click="gameInstance.clickHandler"/>
+      <div
+          v-for="block in gameInstance.blockClassList"
+          class="block"
+          :class="block.className"
+          @click="gameInstance.clickHandler"/>
     </div>
 
   </div>
